@@ -1,0 +1,219 @@
+homeassistant:
+  # Name of the location where Home Assistant is running test jhf
+  name: Danny@Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: !secret latitude
+  longitude: !secret longitude
+
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 909
+  unit_system: metric
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: !secret time_zone
+  # Customization file
+  customize: #!include customize.yaml
+    # Alarm clock sensors
+    sensor.time:
+      hidden: true
+    sensor.alarm_clock_hour:
+      hidden: true
+    sensor.alarm_clock_minute:
+      hidden: true
+    sensor.alarm_clock_time_long:
+      hidden: true
+    sensor.alarm_clock_time:
+      friendly_name: 'Alarm Clock Setting'
+      icon: mdi:alarm
+    # Alarm clock inputs
+    input_number.alarm_clock_hour:
+      friendly_name: 'Hour'
+      icon: mdi:timer
+    input_number.alarm_clock_minute:
+      friendly_name: 'Minute'
+      icon: mdi:timer
+    input_boolean.alarm_clock_status:
+      friendly_name: 'Alarm Clock Status'
+      icon: mdi:alarm-check
+  packages: !include_dir_named packages/
+# Show links to resources in log and frontend
+#introduction:
+
+# Enables the frontend
+frontend:
+
+# Enables configuration UI
+config:
+
+http:
+  api_password: !secret http_password
+  # Secrets are defined in the file secrets.yaml
+  # api_password: !secret http_password
+  # Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+  # base_url: example.duckdns.org:8123
+
+# Checks for available updates
+# Note: This component will send some information about your system to
+# the developers to assist with development of Home Assistant.
+# For more information, please see:
+# https://home-assistant.io/blog/2016/10/25/explaining-the-updater/
+updater:
+  # Optional, allows Home Assistant developers to focus on popular components.
+  # include_used_components: true
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time
+history:
+
+# View all events in a logbook
+logbook:
+
+# Enables a map showing the location of tracked devices
+map:
+
+# Track the sun
+sun:
+
+light 2:
+  platform: lifx
+  broadcast: 192.168.1.255
+  
+media_player:
+  platform: braviatv
+  host: 192.168.1.127
+  name: TV
+
+upnp:
+  port_mapping: true
+  ports:
+    hass: 8000
+    8080: 8080
+    
+    
+cast:
+  media_player:
+  - host: 192.168.1.136
+
+
+device_tracker:
+  - platform: swisscom
+    new_device_defaults:
+      track_new_devices: False
+      hide_if_away: False
+  
+sensor:
+  - platform: yr
+    monitored_conditions:
+      - temperature
+      - pressure
+  - platform: time_date
+    display_options:
+      - 'time'    
+# Text to speech
+tts:
+  - platform: google
+
+# Cloud
+cloud:
+
+#
+# Split configuration into separate files
+#
+
+#input_number: !include input_number.yaml
+
+
+
+#group: !include groups.yaml
+#automation: !include automations.yaml
+#script: !include scripts.yaml
+#sensor 100: !include sensors.yaml
+
+group:
+########VIEWS
+  bedroom_view:
+    view: yes
+    name: All
+    entities:
+      - group.bedroom
+      - group.sensor
+      - group.motion
+      - group.environment
+      - group.alarm_clock
+####GROUPS
+  bedroom:
+    name: Bedroom
+    entities:
+      - light.stehlampe
+  sensor:
+    name: Wall Plug
+    icon: mdi:account-multiple
+    entities:
+      - sensor.fibaro_system_fgwpef_wall_plug_power_3
+      - sensor.fibaro_system_fgwpef_wall_plug_energy_2
+  motion:
+    name: Motion Sensor
+    icon: mdi:account-multiple
+    entities:
+      - sensor.fibaro_system_fgms001_motion_sensor_general
+      - sensor.fibaro_system_fgms001_motion_sensor_luminance
+      - sensor.fibaro_system_fgms001_motion_sensor_temperature
+  environment:
+    - sun.sun
+    - sensor.yr_temperature
+  alarm_clock:
+    name: 'Alarm Clock'
+    entities:
+      - sensor.alarm_clock_time
+      - input_number.alarm_clock_hour
+      - input_number.alarm_clock_minute
+      - input_boolean.alarm_clock_status
+
+zwave:
+  usb_path: /dev/ttyACM0
+  
+recorder:
+  db_url: !secret db_url
+
+camera:
+  - platform: rpi_camera
+  
+  
+switch 02:
+  - platform: wake_on_lan
+    mac_address: !secret mac_address
+
+
+sensor 11:
+  - platform: openhardwaremonitor
+    host: !secret host
+    
+
+script:
+  wol:
+    alias: Turn Laptop on
+    sequence:
+    - service: shell_command.vpn_on
+
+          
+shell_command:
+  vpn_on: /bin/bash /home/homeassistant/.homeassistant/wol.sh 
+  vpn_off: ssh user1@192.168.3.1 "vbash /config/scripts/vpnoff.sh"  
+  
+  
+sensor 1234:
+  - platform: synologydsm
+    host: !secret synology_host
+    username: !secret synology_username
+    password: !secret synology_password
+    monitored_conditions:
+      - cpu_total_load
+      - volume_percentage_used
+      
+scene 5:
+  platform: lifx_cloud
+  token: !secret lifx_token
