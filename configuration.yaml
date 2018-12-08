@@ -1,5 +1,5 @@
 homeassistant:
-  # Name of the location where Home Assistant is running test jhf
+  # Name of the location where Home Assistant is running test jh
   name: Danny@Home
   # Location required to calculate the time the sun rises and sets
   latitude: !secret latitude
@@ -72,7 +72,8 @@ history:
 # View all events in a logbook
 logbook:
 
-# Enables a map showing the location of tracked devices
+# Enables a map showing the location of tracked devices d
+#sfdf
 map:
 
 # Track the sun
@@ -112,7 +113,9 @@ sensor:
       - pressure
   - platform: time_date
     display_options:
-      - 'time'    
+      - 'time'   
+  - platform: openhardwaremonitor
+    host: !secret monitor_ip      
 # Text to speech
 tts:
   - platform: google
@@ -217,3 +220,120 @@ sensor 1234:
 scene 5:
   platform: lifx_cloud
   token: !secret lifx_token
+  
+  
+mqtt:
+  broker: localhost
+  port: 1883
+  client_id: homeassistant
+  keepalive: 60
+  username: !secret mqtt_username
+  password: !secret mqtt_pwd
+  discovery: true 
+  discovery_prefix: homeassistant 
+  birth_message: 
+    topic: 'homeassistant/status' 
+    payload: 'online' 
+  will_message: 
+    topic: 'homeassistant/status'
+    payload: 'offline'
+  
+
+  
+sensor groundfloor:
+  - platform: mqtt
+    state_topic: "test/topic"
+    name: 'Ground floor temp'
+    unit_of_measurement: "C"
+    
+sensor shield:
+  - platform: mqtt
+    name: 'AndroidTV Activity'
+    state_topic: 'homeassistant/sensor/androidtv-activity'
+    
+
+
+
+
+switch 345:
+  - platform: mqtt
+    name: "Bedroom Switch"
+    state_topic: "homeassistant/androidtv/run"
+    command_topic: "homeassistant/androidtv/run"
+    payload_on: 'Netflix'
+    payload_off: "Youtube"
+    state_on: "ON"
+    state_off: "OFF"
+    optimistic: false
+    qos: 0
+    retain: true
+
+
+    
+script 2:
+  buttontest:
+    sequence:
+      service: mqtt.publish
+      data:
+        topic: "homeassistant/androidtv/run"
+        payload: "Netflix"
+
+
+script:
+  buttontest2:
+    sequence:
+      service: shell_command.start_plex_shield_tv
+  test_on2:
+      alias: Turn Test on2
+      sequence:
+      - service: shell_command.test2_on   
+  test_on3:
+      alias: Turn Test on3
+      sequence:
+      - service: shell_command.test3_on     
+shell_command:
+  start_plex_shield_tv: 'adb connect 192.168.1.120 && sleep 1 && adb shell input keyevent KEYCODE_WAKEUP && adb shell monkey -p com.plexapp.android -v 500 && adb kill-server'    
+  test2_on: ssh insider@192.168.1.134 -p 2222 '"/mnt/c/Program Files/RStudio/bin/rstudio.exe" "R:\7_DataScience\21_EC2\02_CloudComputing\04_Reticulate\test\reticulate_V1.Rmd"'
+  test3_on: ssh insider@192.168.1.134 -p 2222 "'/mnt/c/Program Files/RStudio/bin/rstudio.exe' 'R:\7_DataScience\21_EC2\OneDrive_DashboardInput\CreateInput.R'"
+  sleep_pc: ssh insider@192.168.1.134 -p 2222 "/mnt/c/windows/system32/rundll32.exe powrprof.dll,SetSuspendState"
+
+  
+switch 5:
+  - platform: command_line
+    switches:
+      test_ssh:
+        command_on: ssh insider@192.168.1.134 -p 2222 '"/mnt/c/Program Files/RStudio/bin/rstudio.exe" "R:\7_DataScience\21_EC2\02_CloudComputing\04_Reticulate\test\reticulate_V1.Rmd"'
+    friendly_name: Magic Test Switch
+
+switch 6:
+  - platform: command_line
+    switches:
+      test_ssh:
+        command_on: ssh insider@192.168.1.134 -p 2222 '"/mnt/c/Program Files/RStudio/bin/rstudio.exe" "R:\7_DataScience\21_EC2\02_CloudComputing\OneDrive_DashboardInput\CreateInput.Rmd"'
+    friendly_name: Portfolio refresh
+
+
+
+
+
+automation 5:
+  alias: "Portoflio Update"
+  trigger:
+    platform: time
+    at: '008:45:00'
+  action:
+    - service: switch.turn_on
+      entity_id: switch.wake_on_lan
+    - delay: '00:02:00'
+    - service: shell_command.test3_on   
+    - delay: '00:05:00'
+    - service: shell_command.sleep_pc
+
+
+
+
+    
+switch 10:
+  - platform: wake_on_lan
+    name: "TARGET"
+    mac_address: !secret mac_address
