@@ -1,0 +1,25 @@
+#################################################################
+## Groups
+#################################################################
+
+  media:
+    name: Media
+    view: yes
+    icon: mdi:play-circle-outline
+    entities:
+      - group.entertainment
+      - group.light_operations
+      - group.media_player
+
+  Entertainment:
+    control: hidden
+    entities:
+      - sensor.living_room
+      - input_select.livingroomharmony
+      - hdmiswitcher
+      - input_select.hdmiinput
+      - input_number.harmonyvolume
+      - input_boolean.tv
+      - input_boolean.tvtime
+      - sensor.total_tv_time
+      - script.tv_off
