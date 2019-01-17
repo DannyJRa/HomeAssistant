@@ -1,0 +1,6 @@
+views:
+  - title: main
+    icon: mdi:home-outline
+    cards:
+      - type: light
+        entity: light.strahler
